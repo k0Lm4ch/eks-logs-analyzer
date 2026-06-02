@@ -1,0 +1,7 @@
+2024-05-01T12:00:01.100Z [INFO] aws-node starting, CNI version v1.18.0
+2024-05-01T12:00:05.220Z [INFO] ipamd: datastore pool stats: total=10 used=10 free=0
+2024-05-01T12:00:06.310Z [ERROR] ipamd: no available IP addresses in datastore
+2024-05-01T12:00:06.450Z [ERROR] failed to assign an IP address to container eni-aaaa1111
+2024-05-01T12:00:07.001Z [WARN] RequestLimitExceeded calling DescribeNetworkInterfaces, backing off
+2024-05-01T12:00:09.500Z [ERROR] unable to allocate ENI: insufficient IP addresses available
+2024-05-01T12:01:11.700Z [INFO] reconciling pod networking

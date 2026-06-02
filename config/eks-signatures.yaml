@@ -1,0 +1,213 @@
+# EKS log signature rulebook.
+# Each signature:
+#   id:        stable kebab-case identifier
+#   title:     short human-readable summary
+#   severity:  critical | high | medium | low
+#   sources:   optional list filtering which normalized sources to scan
+#              (kubelet, containerd, aws-node, kube-proxy, dmesg, messages, pod, events, unknown)
+#   patterns:  list of case-insensitive regexes; any match emits a finding
+#   description: what the signature means
+#   hints:     remediation / next-check guidance (used in reports)
+signatures:
+  - id: cni-ip-exhaustion
+    title: VPC CNI IP address exhaustion
+    severity: critical
+    sources: [aws-node, kubelet]
+    patterns:
+      - "failed to assign an? ip"
+      - "no available ip addresses"
+      - "insufficient ip"
+      - "ipamd.*no ip"
+    description: >
+      The VPC CNI could not allocate a pod IP. Usually the subnet/ENI IP pool is
+      exhausted or WARM_IP_TARGET is too low for pod density.
+    hints:
+      - "Check free IPs in the node's subnets and ENI limits for the instance type."
+      - "Review aws-node env: WARM_IP_TARGET, MINIMUM_IP_TARGET, ENABLE_PREFIX_DELEGATION."
+      - "Consider prefix delegation or larger/secondary subnets."
+
+  - id: cni-aws-node
+    title: aws-node / IPAMD configuration failure
+    severity: high
+    sources: [aws-node]
+    patterns:
+      - "failed to configure"
+      - "l-ipam"
+      - "unable to allocate"
+      - "datastore.*error"
+      - "failed to.*setup.*network"
+    description: >
+      The aws-node (VPC CNI) daemonset failed to configure pod networking or
+      its IPAM datastore reported an error.
+    hints:
+      - "kubectl -n kube-system logs ds/aws-node -c aws-node"
+      - "Confirm the CNI version is compatible with the cluster Kubernetes version."
+      - "Check the node IAM role has the AmazonEKS_CNI_Policy permissions."
+
+  - id: kubelet-pleg
+    title: PLEG (Pod Lifecycle Event Generator) unhealthy
+    severity: high
+    sources: [kubelet]
+    patterns:
+      - "pleg is not healthy"
+      - "pleg has yet to be successful"
+      - "skipping pod synchronization.*pleg"
+    description: >
+      The kubelet's PLEG could not relist container state in time, often caused
+      by an overloaded or unresponsive container runtime.
+    hints:
+      - "Check containerd health and CPU/IO saturation on the node."
+      - "Look for a flood of containers or a stuck image pull."
+      - "kubectl describe node and check for NotReady transitions."
+
+  - id: kubelet-disk-pressure
+    title: Node disk pressure / eviction
+    severity: high
+    sources: [kubelet, messages]
+    patterns:
+      - "diskpressure"
+      - "attempting to reclaim"
+      - "eviction manager"
+      - "no space left on device"
+      - "free disk space failed"
+    description: >
+      The kubelet detected DiskPressure and may be evicting pods or garbage
+      collecting images to reclaim space.
+    hints:
+      - "df -h on the node; inspect /var/lib/containerd and /var/log."
+      - "Check image/log growth and eviction thresholds (--eviction-hard)."
+
+  - id: kubelet-memory-pressure
+    title: Node memory pressure
+    severity: high
+    sources: [kubelet, dmesg, messages]
+    patterns:
+      - "memorypressure"
+      - "system oom"
+      - "out of memory: kill"
+      - "attempting to reclaim memory"
+    description: >
+      The node is under memory pressure; the kubelet may evict pods and the
+      kernel OOM killer may terminate processes.
+    hints:
+      - "Check node allocatable vs requests; look for memory leaks."
+      - "Review pod memory limits and node instance sizing."
+
+  - id: container-oomkilled
+    title: Container OOMKilled
+    severity: high
+    sources: [kubelet, containerd, dmesg, messages, events, pod]
+    patterns:
+      - "oomkilled"
+      - "oom-kill"
+      - "cgroup out of memory"
+      - "memory cgroup out of memory"
+      - "killed process .* \\(.*\\) total-vm"
+    description: >
+      A container exceeded its memory limit and was killed by the OOM killer.
+    hints:
+      - "Raise the container memory limit or fix the leak."
+      - "kubectl describe pod <pod> and check lastState.terminated.reason."
+
+  - id: image-pull-failure
+    title: Image pull failure
+    severity: medium
+    sources: [kubelet, containerd, events, pod]
+    patterns:
+      - "imagepullbackoff"
+      - "errimagepull"
+      - "pull access denied"
+      - "failed to pull image"
+      - "manifest unknown"
+      - "401 unauthorized"
+    description: >
+      The runtime could not pull a container image (auth, missing tag, or
+      registry/network problem).
+    hints:
+      - "Verify the image tag exists and the registry is reachable."
+      - "For ECR, confirm the node role has ecr:GetAuthorizationToken + pull perms."
+
+  - id: dns-failure
+    title: DNS resolution failure (CoreDNS/kube-dns)
+    severity: medium
+    sources: [kubelet, pod, containerd]
+    patterns:
+      - "no such host"
+      - "nxdomain"
+      - "server misbehaving"
+      - "connection refused.*(coredns|kube-dns|:53)"
+      - "i/o timeout.*:53"
+    description: >
+      DNS lookups are failing, often pointing at CoreDNS health, kube-proxy
+      rules, or NodeLocal DNS issues.
+    hints:
+      - "kubectl -n kube-system get pods -l k8s-app=kube-dns"
+      - "Test resolution from a debug pod: nslookup kubernetes.default."
+
+  - id: tls-x509
+    title: TLS / x509 certificate error
+    severity: high
+    sources: [kubelet, aws-node, kube-proxy, containerd]
+    patterns:
+      - "x509"
+      - "certificate has expired"
+      - "certificate is not valid"
+      - "unknown authority"
+      - "tls: bad certificate"
+    description: >
+      A TLS handshake failed due to an expired, untrusted, or invalid
+      certificate (kubelet client cert, API server CA, or registry TLS).
+    hints:
+      - "Check kubelet client cert rotation and node clock skew (NTP)."
+      - "Verify the cluster CA bundle and any custom registry CAs."
+
+  - id: irsa-oidc
+    title: IRSA / STS credential failure
+    severity: high
+    sources: [aws-node, pod, kubelet]
+    patterns:
+      - "webidentityerr"
+      - "failed to retrieve credentials"
+      - "accessdenied.*(sts|assumerolewithwebidentity)"
+      - "no oidc provider"
+      - "not authorized to perform: sts:assumerolewithwebidentity"
+    description: >
+      A pod or the CNI failed to obtain AWS credentials via IRSA (OIDC web
+      identity), usually a trust-policy or service-account annotation issue.
+    hints:
+      - "Confirm the IAM role trust policy matches the cluster OIDC provider + SA."
+      - "Check the serviceaccount eks.amazonaws.com/role-arn annotation."
+
+  - id: api-throttling
+    title: AWS API throttling
+    severity: medium
+    sources: [aws-node, kubelet, kube-proxy]
+    patterns:
+      - "requestlimitexceeded"
+      - "throttling"
+      - "toomanyrequests"
+      - "rate exceeded"
+      - "client.requestlimitexceeded"
+    description: >
+      AWS API calls are being throttled, which can stall ENI/IP allocation and
+      other control operations.
+    hints:
+      - "Reduce API call rate; check for tight reconcile loops."
+      - "Request a service quota increase if sustained."
+
+  - id: ebs-csi-mount
+    title: EBS volume mount failure
+    severity: high
+    sources: [kubelet, events, pod]
+    patterns:
+      - "failedmount"
+      - "volumeattachment"
+      - "multi-attach error"
+      - "failed to attach volume"
+      - "unable to attach or mount volumes"
+    description: >
+      A pod could not mount its EBS volume, often Multi-Attach conflicts, AZ
+      mismatch, or the EBS CSI driver lacking permissions.
+    hints:
+      - "Ensure the pod is scheduled in the volume's AZ."
+      - "Check the EBS CSI driver pods and the node role's EBS permissions."

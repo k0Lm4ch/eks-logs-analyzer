@@ -1,0 +1,2 @@
+2024-05-01T12:00:07.001Z [WARN] RequestLimitExceeded calling DescribeNetworkInterfaces, backing off
+2024-05-01T12:00:12.500Z Throttling: Rate exceeded (TooManyRequests)

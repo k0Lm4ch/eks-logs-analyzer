@@ -1,0 +1,34 @@
+# Secrets & local config (never commit)
+.env
+config/config.yaml
+
+# Real / customer log exports (only synthetic fixtures belong in git)
+exports/
+*.log
+!tests/fixtures/**/*.log
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.uv/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Generated reports
+out.md
+*.report.md

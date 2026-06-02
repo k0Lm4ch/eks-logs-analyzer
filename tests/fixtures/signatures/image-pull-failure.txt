@@ -1,0 +1,2 @@
+E0501 12:00:45.333333  1234 kuberuntime_manager.go:1256] Failed to pull image "myrepo/app:latest": ErrImagePull: pull access denied
+E0501 12:00:46.444444  1234 pod_workers.go:965] Error syncing pod err="ImagePullBackOff"

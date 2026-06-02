@@ -1,0 +1,2 @@
+May  1 12:00:40 host kernel: Memory cgroup out of memory: Killed process 4567 (java)
+2024-05-01T12:00:50Z container 9f2a OOMKilled (memory limit exceeded)

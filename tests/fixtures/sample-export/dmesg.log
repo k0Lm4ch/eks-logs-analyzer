@@ -1,0 +1,3 @@
+May  1 12:00:40 ip-10-0-1-23 kernel: Memory cgroup out of memory: Killed process 4567 (java) total-vm:2097152kB
+May  1 12:00:40 ip-10-0-1-23 kernel: oom-kill:constraint=CONSTRAINT_MEMCG,nodemask=(null)
+May  1 12:00:41 ip-10-0-1-23 kernel: System OOM encountered, victim process: python3

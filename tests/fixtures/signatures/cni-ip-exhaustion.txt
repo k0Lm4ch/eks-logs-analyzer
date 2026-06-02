@@ -1,0 +1,2 @@
+2024-05-01T12:00:06.310Z [ERROR] ipamd: no available IP addresses in datastore
+2024-05-01T12:00:06.450Z [ERROR] failed to assign an IP address to container eni-aaaa1111

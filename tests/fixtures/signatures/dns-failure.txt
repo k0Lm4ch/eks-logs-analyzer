@@ -1,0 +1,2 @@
+2024-05-01T12:00:25.900Z dial tcp: lookup db.example.internal: no such host
+2024-05-01T12:01:30Z coredns NXDOMAIN for service.cluster.local

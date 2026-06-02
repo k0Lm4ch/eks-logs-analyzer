@@ -1,0 +1,8 @@
+I0501 12:00:10.123456    1234 kubelet.go:2310] "SyncLoop ADD" pods=["default/web-7c"]
+I0501 12:00:30.654321    1234 kubelet.go:2456] "PLEG is not healthy: pleg has yet to be successful"
+W0501 12:00:31.111111    1234 eviction_manager.go:340] "Eviction manager: attempting to reclaim ephemeral-storage"
+W0501 12:00:31.222222    1234 helpers.go:781] "DiskPressure condition observed on node ip-10-0-1-23"
+E0501 12:00:45.333333    1234 kuberuntime_manager.go:1256] "Failed to pull image \"myrepo/app:latest\": ErrImagePull: pull access denied"
+E0501 12:00:46.444444    1234 pod_workers.go:965] "Error syncing pod" err="ImagePullBackOff"
+E0501 12:01:01.555555    1234 remote_runtime.go:294] "x509: certificate has expired or is not yet valid"
+E0501 12:01:20.666666    1234 reconciler.go:201] "FailedMount: unable to attach or mount volumes: timed out waiting for vol-0abc"

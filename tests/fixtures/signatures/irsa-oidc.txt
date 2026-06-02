@@ -1,0 +1,2 @@
+2024-05-01T12:01:22Z WebIdentityErr: AccessDenied not authorized to perform: sts:AssumeRoleWithWebIdentity
+2024-05-01T12:01:23Z failed to retrieve credentials from STS

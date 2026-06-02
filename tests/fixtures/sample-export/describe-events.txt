@@ -1,0 +1,5 @@
+Events from kubectl describe pod web-7c (synthetic):
+2024-05-01T12:00:46Z  Warning  Failed       kubelet  Failed to pull image "myrepo/app:latest": ErrImagePull
+2024-05-01T12:00:47Z  Warning  BackOff      kubelet  Back-off pulling image -> ImagePullBackOff
+2024-05-01T12:01:21Z  Warning  FailedMount  kubelet  MountVolume.SetUp failed: Multi-Attach error for volume vol-0abc
+2024-05-01T12:01:22Z  Warning  FailedScheduling  default-scheduler  AssumeRoleWithWebIdentity AccessDenied for sts

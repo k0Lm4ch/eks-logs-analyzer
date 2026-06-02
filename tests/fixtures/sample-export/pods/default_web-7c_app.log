@@ -1,0 +1,4 @@
+2024-05-01T12:00:20.100Z app starting up
+2024-05-01T12:00:25.300Z connecting to db at db.example.internal:5432
+2024-05-01T12:00:25.900Z dial tcp: lookup db.example.internal: no such host
+2024-05-01T12:00:39.000Z fatal: out of memory, exiting
