@@ -1,3 +1,6 @@
+# Build spec / internal notes (kept local)
+AGENTS.md
+
 # Secrets & local config (never commit)
 .env
 config/config.yaml
